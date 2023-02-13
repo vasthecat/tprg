@@ -69,7 +69,7 @@ const HELP_STR: &'static str =
 /f:<полное_имя_файла> - полное имя файла, в который будут выводиться данные.
 /h                    - Вывод доступных параметров";
 
-pub fn parse_args(args_iter: std::env::Args) -> Result<Config, &'static str> {
+pub fn parse_args(args_iter: std::env::Args) -> Result<Config, String> {
     let mut generator = None;
     let mut init = None;
     let mut n: u64 = 10000;
@@ -84,22 +84,34 @@ pub fn parse_args(args_iter: std::env::Args) -> Result<Config, &'static str> {
         let (name, rest) = parse_name(&rest);
 
         if name == "h" {
-            return Err(HELP_STR);
+            return Err(HELP_STR.to_string());
         }
 
         if !rest.starts_with(':') {
-            return Err(HELP_STR);
+            return Err(format!(
+                "Не указано значение параметра '{}'\n\n{}",
+                name, HELP_STR
+            ));
         }
 
         let value = rest[1..].to_string();
         match name.as_str() {
             "g" => match GeneratorType::parse(&value) {
-                None => return Err("Недопустимое значение кода генератора"),
+                None => {
+                    return Err(format!(
+                        "Недопустимое значение кода генератора\n\n{}",
+                        HELP_STR
+                    ))
+                }
                 gentype => generator = gentype,
             },
             "n" => match value.parse::<u64>() {
                 Ok(num) => n = num,
-                Err(_) => return Err("Значение аргумента n должно быть неотрицательным числом"),
+                Err(_) => {
+                    return Err("Значение аргумента n должно быть \
+                        неотрицательным числом"
+                        .to_string())
+                }
             },
             "f" => file = value,
             "i" => {
@@ -107,15 +119,36 @@ pub fn parse_args(args_iter: std::env::Args) -> Result<Config, &'static str> {
                 for num in value.split(',') {
                     match num.parse::<u64>() {
                         Ok(n) => vec.push(n),
-                        Err(_) => return Err(
-                            "Значения вектора инициализации должны быть неотрицательными числами",
-                        ),
+                        Err(_) => {
+                            return Err("Значения вектора инициализации должны \
+                                быть неотрицательными числами"
+                                .to_string())
+                        }
                     }
                 }
                 init = Some(vec);
             }
-            &_ => return Err(HELP_STR),
+            argname => {
+                return Err(format!(
+                    "Неизвестный параметр '{}'\n\n{}",
+                    argname, HELP_STR
+                ))
+            }
         }
+    }
+
+    if let None = generator {
+        return Err(format!(
+            "Параметр 'g' является обязательным\n\n{}",
+            HELP_STR
+        ));
+    }
+
+    if let None = init {
+        return Err(format!(
+            "Параметр 'i' является обязательным\n\n{}",
+            HELP_STR
+        ));
     }
 
     if let (Some(generator), Some(init)) = (generator, init) {
@@ -127,5 +160,5 @@ pub fn parse_args(args_iter: std::env::Args) -> Result<Config, &'static str> {
         });
     }
 
-    return Err(HELP_STR);
+    return Err(HELP_STR.to_string());
 }
