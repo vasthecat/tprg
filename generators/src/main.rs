@@ -36,7 +36,7 @@ fn main() {
 fn construct_generator(conf: &Config) -> Result<Box<dyn PRGenerator>, String> {
     match conf.generator {
         GeneratorType::LCG => {
-            if conf.init.len() < 4 {
+            if conf.init.len() != 4 {
                 Err("Для линейного конгруэнтного генератора \
                      инициализационный вектор должен содержать 4 элемента"
                     .to_string())
@@ -49,7 +49,22 @@ fn construct_generator(conf: &Config) -> Result<Box<dyn PRGenerator>, String> {
                 )))
             }
         }
-        GeneratorType::Additive => Ok(Box::new(AdditivePRG::new(&conf.init))),
+        GeneratorType::Additive => {
+            if conf.init.len() != 3 {
+                return Err("Для аддитивного генератора инициализационный \
+                           вектор должен содержать 3 элемента"
+                    .to_string());
+            }
+            let m = conf.init[0];
+            let j = conf.init[1];
+            let k = conf.init[2];
+            if j <= k || k < 1 {
+                return Err("Для аддитивного генератора должно выполняться \
+                            j > k >= 1"
+                    .to_string());
+            }
+            return Ok(Box::new(AdditivePRG::new(m, j, k)));
+        }
         _ => todo!(),
     }
 }
