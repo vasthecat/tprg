@@ -1,0 +1,14 @@
+on: [push]
+jobs:
+  build_and_test:
+    runs-on: windows-2019
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+      - name: Build executable
+        run: cargo build --release
+      - name: Archive artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-generators
+          path: generators/target/release/generators.exe
