@@ -31,7 +31,7 @@ impl GeneratorType {
 #[derive(Debug)]
 pub struct Config {
     pub generator: GeneratorType,
-    pub init: u64,
+    pub init: Vec<u64>,
     pub n: u64,
     pub file: String,
 }
@@ -102,10 +102,18 @@ pub fn parse_args(args_iter: std::env::Args) -> Result<Config, &'static str> {
                 Err(_) => return Err("Значение аргумента n должно быть неотрицательным числом"),
             },
             "f" => file = value,
-            "i" => match value.parse::<u64>() {
-                Ok(num) => init = Some(num),
-                Err(_) => return Err("Значение аргумента i должно быть неотрицательным числом"),
-            },
+            "i" => {
+                let mut vec = Vec::new();
+                for num in value.split(',') {
+                    match num.parse::<u64>() {
+                        Ok(n) => vec.push(n),
+                        Err(_) => return Err(
+                            "Значения вектора инициализации должны быть неотрицательными числами",
+                        ),
+                    }
+                }
+                init = Some(vec);
+            }
             &_ => return Err(HELP_STR),
         }
     }
