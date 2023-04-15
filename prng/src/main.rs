@@ -87,7 +87,12 @@ fn generate_numbers<T: PRGenerator + ?Sized>(conf: &Config, mut gen: Box<T>) -> 
 
 fn write_numbers(conf: &Config, numbers: &Vec<u64>) {
     let mut file = File::create(&conf.file).unwrap();
-    for num in numbers {
-        let _ = file.write_all(format!("{}\n", num).as_bytes());
+    for i in 0..numbers.len() {
+        let num = numbers[i];
+        if i == numbers.len() - 1 {
+            let _ = file.write_all(format!("{}", num).as_bytes());
+        } else {
+            let _ = file.write_all(format!("{},", num).as_bytes());
+        }
     }
 }
