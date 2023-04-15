@@ -1,5 +1,5 @@
 [package]
-name = "generators"
+name = "prng"
 version = "0.1.0"
 edition = "2021"
 

@@ -6,9 +6,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
       - name: Build executable
-        run: cd generators && cargo build --release
+        run: cd prng && cargo build --release
       - name: Archive artifacts
         uses: actions/upload-artifact@v3
         with:
           name: windows-generators
-          path: generators/target/release/generators.exe
+          path: prng/target/release/prng.exe
