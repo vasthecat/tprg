@@ -10,17 +10,13 @@ pub struct AdditivePRG {
 }
 
 impl AdditivePRG {
-    pub fn new(m: u64, j: u64, k: u64) -> Self {
-        let mut fib = vec![0, 1];
-        for i in 0..(j - 2) as usize {
-            fib.push(fib[i] + fib[i + 1]);
-        }
+    pub fn new(m: u64, j: u64, k: u64, init: Vec<u64>) -> Self {
         Self {
             m,
             j,
             k,
-            n: j as usize,
-            vec: fib.into(),
+            n: init.len(),
+            vec: init.into(),
         }
     }
 }

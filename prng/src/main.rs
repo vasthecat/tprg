@@ -50,20 +50,26 @@ fn construct_generator(conf: &Config) -> Result<Box<dyn PRGenerator>, String> {
             }
         }
         GeneratorType::Additive => {
-            if conf.init.len() != 3 {
+            if conf.init.len() < 3 {
                 return Err("Для аддитивного генератора инициализационный \
-                           вектор должен содержать 3 элемента"
+                           вектор должен содержать m, j и k"
                     .to_string());
             }
             let m = conf.init[0];
-            let j = conf.init[1];
-            let k = conf.init[2];
+            let k = conf.init[1];
+            let j = conf.init[2];
+            let xs = Vec::from(&conf.init[3..]);
             if j <= k || k < 1 {
                 return Err("Для аддитивного генератора должно выполняться \
                             j > k >= 1"
                     .to_string());
             }
-            return Ok(Box::new(AdditivePRG::new(m, j, k)));
+            if xs.len() < j as usize {
+                return Err("Для аддитивного генератора длина инициализационного \
+                            вектора len(xs) должна быть >= j"
+                    .to_string());
+            }
+            return Ok(Box::new(AdditivePRG::new(m, j, k, xs)));
         }
         _ => todo!(),
     }
