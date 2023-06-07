@@ -8,8 +8,10 @@ mod prgenerator;
 use prgenerator::PRGenerator;
 
 mod additive;
+mod lfsr;
 mod linear;
 use additive::AdditivePRG;
+use lfsr::LfsrPRG;
 use linear::LinearPRG;
 
 // Генератор запускается только если (1) корректно введены все аргументы,
@@ -70,6 +72,17 @@ fn construct_generator(conf: &Config) -> Result<Box<dyn PRGenerator>, String> {
                     .to_string());
             }
             return Ok(Box::new(AdditivePRG::new(m, j, k, xs)));
+        }
+        GeneratorType::LFSR => {
+            let len = conf.init.len();
+            if len % 2 != 0 {
+                return Err("Инициализационный вектор должен содержать чётное \
+                            количество элементов"
+                    .to_string());
+            }
+            let coeff = Vec::from(&conf.init[..len / 2]);
+            let init = Vec::from(&conf.init[len / 2..]);
+            return Ok(Box::new(LfsrPRG::new(&coeff, &init)));
         }
         _ => todo!(),
     }
