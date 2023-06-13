@@ -23,7 +23,9 @@ impl AdditivePRG {
 
 impl PRGenerator for AdditivePRG {
     fn next(&mut self) -> u64 {
-        let x = (self.vec[self.n - self.j as usize] + self.vec[self.n - self.k as usize]) % self.m;
+        let x = (self.vec[self.n - self.j as usize]
+            + self.vec[self.n - self.k as usize])
+            % self.m;
         self.vec.push_back(x);
         self.vec.pop_front();
         return x;

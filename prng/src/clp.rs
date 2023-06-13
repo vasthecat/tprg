@@ -120,9 +120,11 @@ pub fn parse_args(args_iter: std::env::Args) -> Result<Config, String> {
                     match num.parse::<u64>() {
                         Ok(n) => vec.push(n),
                         Err(_) => {
-                            return Err("Значения вектора инициализации должны \
+                            return Err(
+                                "Значения вектора инициализации должны \
                                 быть неотрицательными числами"
-                                .to_string())
+                                    .to_string(),
+                            )
                         }
                     }
                 }

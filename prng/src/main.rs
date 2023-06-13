@@ -67,18 +67,22 @@ fn construct_generator(conf: &Config) -> Result<Box<dyn PRGenerator>, String> {
                     .to_string());
             }
             if xs.len() < j as usize {
-                return Err("Для аддитивного генератора длина инициализационного \
+                return Err(
+                    "Для аддитивного генератора длина инициализационного \
                             вектора len(xs) должна быть >= j"
-                    .to_string());
+                        .to_string(),
+                );
             }
             return Ok(Box::new(AdditivePRG::new(m, j, k, xs)));
         }
         GeneratorType::LFSR => {
             let len = conf.init.len();
             if len % 2 != 0 {
-                return Err("Инициализационный вектор должен содержать чётное \
+                return Err(
+                    "Инициализационный вектор должен содержать чётное \
                             количество элементов"
-                    .to_string());
+                        .to_string(),
+                );
             }
             let coeff = Vec::from(&conf.init[..len / 2]);
             let init = Vec::from(&conf.init[len / 2..]);
@@ -90,7 +94,10 @@ fn construct_generator(conf: &Config) -> Result<Box<dyn PRGenerator>, String> {
 
 // Так как все генераторы имеют общий интерфейс, то просто генерируем заданное
 // количество чисел по одному с помощью метода .next()
-fn generate_numbers<T: PRGenerator + ?Sized>(conf: &Config, mut gen: Box<T>) -> Vec<u64> {
+fn generate_numbers<T: PRGenerator + ?Sized>(
+    conf: &Config,
+    mut gen: Box<T>,
+) -> Vec<u64> {
     let mut numbers = Vec::new();
     for _ in 0..conf.n {
         numbers.push(gen.next());
