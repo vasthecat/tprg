@@ -8,9 +8,11 @@ mod prgenerator;
 use prgenerator::PRGenerator;
 
 mod additive;
+mod fp;
 mod lfsr;
 mod linear;
 use additive::AdditivePRG;
+use fp::FiveParamPRG;
 use lfsr::LfsrPRG;
 use linear::LinearPRG;
 
@@ -74,6 +76,28 @@ fn construct_generator(conf: &Config) -> Result<Box<dyn PRGenerator>, String> {
                 );
             }
             return Ok(Box::new(AdditivePRG::new(m, j, k, xs)));
+        }
+        GeneratorType::FiveParam => {
+            let len = conf.init.len();
+            if len < 5 {
+                return Err("Для 5-параметрического генератора необходимо \
+                           указать параметры p,q1,q2,q3,w"
+                    .to_string());
+            }
+            let p = conf.init[0];
+            let q1 = conf.init[1];
+            let q2 = conf.init[2];
+            let q3 = conf.init[3];
+            let w = conf.init[4];
+            let xs = Vec::from(&conf.init[5..]);
+            if xs.len() < p as _ {
+                return Err(
+                    "Для 5-параметрического генератора необходимо указать \
+                            p коэффициентов X"
+                        .to_string(),
+                );
+            }
+            return Ok(Box::new(FiveParamPRG::new(p, q1, q2, q3, w, xs)));
         }
         GeneratorType::LFSR => {
             let len = conf.init.len();
