@@ -6,7 +6,7 @@ pub enum GeneratorType {
     Lfsr,            // регистр сдвига с обратной связью (РСЛОС);
     Nfsr,            // нелинейная комбинация РСЛОС;
     MersenneTwister, // вихрь Мерсенна;
-    RC4,             // RC4;
+    Rc4,             // RC4;
     Rsa,             // ГПСЧ на основе RSA;
     Bbs,             // алгоритм Блюма-Блюма-Шуба;
 }
@@ -20,7 +20,7 @@ impl GeneratorType {
             "lfsr" => Some(GeneratorType::Lfsr),
             "nfsr" => Some(GeneratorType::Nfsr),
             "mt" => Some(GeneratorType::MersenneTwister),
-            "rc4" => Some(GeneratorType::RC4),
+            "rc4" => Some(GeneratorType::Rc4),
             "rsa" => Some(GeneratorType::Rsa),
             "bbs" => Some(GeneratorType::Bbs),
             &_ => None,
