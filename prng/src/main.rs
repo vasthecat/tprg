@@ -39,7 +39,7 @@ fn main() {
 // невозможно сконструировать генератор, то возвращается ошибка.
 fn construct_generator(conf: &Config) -> Result<Box<dyn PRGenerator>, String> {
     match conf.generator {
-        GeneratorType::LCG => {
+        GeneratorType::Lcg => {
             if conf.init.len() != 4 {
                 Err("Для линейного конгруэнтного генератора \
                      инициализационный вектор должен содержать 4 элемента"
@@ -60,15 +60,15 @@ fn construct_generator(conf: &Config) -> Result<Box<dyn PRGenerator>, String> {
                     .to_string());
             }
             let m = conf.init[0];
-            let k = conf.init[1];
-            let j = conf.init[2];
+            let k = conf.init[1] as usize;
+            let j = conf.init[2] as usize;
             let xs = Vec::from(&conf.init[3..]);
             if j <= k || k < 1 {
                 return Err("Для аддитивного генератора должно выполняться \
                             j > k >= 1"
                     .to_string());
             }
-            if xs.len() < j as usize {
+            if xs.len() < j {
                 return Err(
                     "Для аддитивного генератора длина инициализационного \
                             вектора len(xs) должна быть >= j"
@@ -84,10 +84,10 @@ fn construct_generator(conf: &Config) -> Result<Box<dyn PRGenerator>, String> {
                            указать параметры p,q1,q2,q3,w"
                     .to_string());
             }
-            let p = conf.init[0];
-            let q1 = conf.init[1];
-            let q2 = conf.init[2];
-            let q3 = conf.init[3];
+            let p = conf.init[0] as usize;
+            let q1 = conf.init[1] as usize;
+            let q2 = conf.init[2] as usize;
+            let q3 = conf.init[3] as usize;
             let w = conf.init[4];
             let xs = Vec::from(&conf.init[5..]);
             if xs.len() < p as _ {
@@ -99,7 +99,7 @@ fn construct_generator(conf: &Config) -> Result<Box<dyn PRGenerator>, String> {
             }
             return Ok(Box::new(FiveParamPRG::new(p, q1, q2, q3, w, xs)));
         }
-        GeneratorType::LFSR => {
+        GeneratorType::Lfsr => {
             let len = conf.init.len();
             if len % 2 != 0 {
                 return Err(
@@ -110,7 +110,7 @@ fn construct_generator(conf: &Config) -> Result<Box<dyn PRGenerator>, String> {
             }
             let coeff = Vec::from(&conf.init[..len / 2]);
             let init = Vec::from(&conf.init[len / 2..]);
-            return Ok(Box::new(LfsrPRG::new(&coeff, &init)));
+            return Ok(Box::new(LfsrPRG::new(coeff, init)));
         }
         _ => todo!(),
     }
@@ -121,7 +121,7 @@ fn construct_generator(conf: &Config) -> Result<Box<dyn PRGenerator>, String> {
 fn generate_numbers<T: PRGenerator + ?Sized>(
     conf: &Config,
     mut gen: Box<T>,
-) -> Vec<u64> {
+) -> Vec<u32> {
     let mut numbers = Vec::new();
     for _ in 0..conf.n {
         numbers.push(gen.next());
@@ -129,7 +129,7 @@ fn generate_numbers<T: PRGenerator + ?Sized>(
     return numbers;
 }
 
-fn write_numbers(conf: &Config, numbers: &Vec<u64>) {
+fn write_numbers(conf: &Config, numbers: &Vec<u32>) {
     let mut file = File::create(&conf.file).unwrap();
     for i in 0..numbers.len() {
         let num = numbers[i];

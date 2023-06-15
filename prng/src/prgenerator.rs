@@ -1,3 +1,3 @@
 pub trait PRGenerator {
-    fn next(&mut self) -> u64;
+    fn next(&mut self) -> u32;
 }

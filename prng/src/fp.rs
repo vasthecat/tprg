@@ -5,36 +5,36 @@ pub struct FiveParamPRG {
     q1: usize,
     q2: usize,
     q3: usize,
-    w: usize,
+    w: u32,
     vec: BitVec,
 }
 
 impl FiveParamPRG {
     pub fn new(
-        p: u64,
-        q1: u64,
-        q2: u64,
-        q3: u64,
-        w: u64,
-        xs: Vec<u64>,
+        p: usize,
+        q1: usize,
+        q2: usize,
+        q3: usize,
+        w: u32,
+        xs: Vec<u32>,
     ) -> FiveParamPRG {
-        let mut bv = bitvec![0; p as usize];
-        for i in 0..xs.len() {
-            *bv.get_mut(i).unwrap() = if xs[i] == 0 { false } else { true };
+        let mut bv = bitvec![0; p];
+        for (i, x) in xs.iter().enumerate() {
+            *bv.get_mut(i).unwrap() = *x != 0;
         }
         FiveParamPRG {
-            q1: q1 as usize,
-            q2: q2 as usize,
-            q3: q3 as usize,
-            w: w as usize,
+            q1,
+            q2,
+            q3,
+            w,
             vec: bv,
         }
     }
 }
 
 impl PRGenerator for FiveParamPRG {
-    fn next(&mut self) -> u64 {
-        let mut word = BitVec::<u64, Msb0>::new();
+    fn next(&mut self) -> u32 {
+        let mut word = BitVec::<u32, Msb0>::new();
         for _ in 0..self.w {
             let bit = self.vec[0]
                 ^ self.vec[self.q1 - 1]
@@ -44,6 +44,6 @@ impl PRGenerator for FiveParamPRG {
             *self.vec.last_mut().unwrap() = bit;
             word.push(bit);
         }
-        return word.load_be::<u64>();
+        return word.load_be::<u32>();
     }
 }

@@ -1,28 +1,28 @@
 #[derive(Debug)]
 pub enum GeneratorType {
-    LCG,             // линейный конгруэнтный метод;
+    Lcg,             // линейный конгруэнтный метод;
     Additive,        // аддитивный метод;
     FiveParam,       // пятипараметрический метод;
-    LFSR,            // регистр сдвига с обратной связью (РСЛОС);
-    NFSR,            // нелинейная комбинация РСЛОС;
+    Lfsr,            // регистр сдвига с обратной связью (РСЛОС);
+    Nfsr,            // нелинейная комбинация РСЛОС;
     MersenneTwister, // вихрь Мерсенна;
     RC4,             // RC4;
-    RSA,             // ГПСЧ на основе RSA;
-    BBS,             // алгоритм Блюма-Блюма-Шуба;
+    Rsa,             // ГПСЧ на основе RSA;
+    Bbs,             // алгоритм Блюма-Блюма-Шуба;
 }
 
 impl GeneratorType {
-    fn parse(name: &String) -> Option<Self> {
-        match name.as_str() {
-            "lc" => Some(GeneratorType::LCG),
+    fn parse(name: &str) -> Option<Self> {
+        match name {
+            "lc" => Some(GeneratorType::Lcg),
             "add" => Some(GeneratorType::Additive),
             "5p" => Some(GeneratorType::FiveParam),
-            "lfsr" => Some(GeneratorType::LFSR),
-            "nfsr" => Some(GeneratorType::NFSR),
+            "lfsr" => Some(GeneratorType::Lfsr),
+            "nfsr" => Some(GeneratorType::Nfsr),
             "mt" => Some(GeneratorType::MersenneTwister),
             "rc4" => Some(GeneratorType::RC4),
-            "rsa" => Some(GeneratorType::RSA),
-            "bbs" => Some(GeneratorType::BBS),
+            "rsa" => Some(GeneratorType::Rsa),
+            "bbs" => Some(GeneratorType::Bbs),
             &_ => None,
         }
     }
@@ -31,7 +31,7 @@ impl GeneratorType {
 #[derive(Debug)]
 pub struct Config {
     pub generator: GeneratorType,
-    pub init: Vec<u64>,
+    pub init: Vec<u32>,
     pub n: u64,
     pub file: String,
 }
@@ -51,7 +51,7 @@ fn parse_name(arg: &String) -> (String, String) {
     return (name, arg[i..].to_string());
 }
 
-const HELP_STR: &'static str =
+const HELP_STR: &str =
     "Использование: ./generators /g:<код> /i:<число> [/n:<длина>] [/f:<имя_файла>] [/h]
 /g:<код_метода>       - параметр указывает на метод генерации ПСЧ
   Допустимые значения:
@@ -117,7 +117,7 @@ pub fn parse_args(args_iter: std::env::Args) -> Result<Config, String> {
             "i" => {
                 let mut vec = Vec::new();
                 for num in value.split(',') {
-                    match num.parse::<u64>() {
+                    match num.parse::<u32>() {
                         Ok(n) => vec.push(n),
                         Err(_) => {
                             return Err(
@@ -139,14 +139,14 @@ pub fn parse_args(args_iter: std::env::Args) -> Result<Config, String> {
         }
     }
 
-    if let None = generator {
+    if generator.is_none() {
         return Err(format!(
             "Параметр 'g' является обязательным\n\n{}",
             HELP_STR
         ));
     }
 
-    if let None = init {
+    if init.is_none() {
         return Err(format!(
             "Параметр 'i' является обязательным\n\n{}",
             HELP_STR

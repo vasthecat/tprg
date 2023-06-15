@@ -2,15 +2,15 @@ use crate::prgenerator::PRGenerator;
 use std::collections::VecDeque;
 
 pub struct AdditivePRG {
-    m: u64,
-    j: u64,
-    k: u64,
+    m: u32,
+    j: usize,
+    k: usize,
     n: usize,
-    vec: VecDeque<u64>,
+    vec: VecDeque<u32>,
 }
 
 impl AdditivePRG {
-    pub fn new(m: u64, j: u64, k: u64, init: Vec<u64>) -> Self {
+    pub fn new(m: u32, j: usize, k: usize, init: Vec<u32>) -> Self {
         Self {
             m,
             j,
@@ -22,10 +22,9 @@ impl AdditivePRG {
 }
 
 impl PRGenerator for AdditivePRG {
-    fn next(&mut self) -> u64 {
-        let x = (self.vec[self.n - self.j as usize]
-            + self.vec[self.n - self.k as usize])
-            % self.m;
+    fn next(&mut self) -> u32 {
+        let x =
+            (self.vec[self.n - self.j] + self.vec[self.n - self.k]) % self.m;
         self.vec.push_back(x);
         self.vec.pop_front();
         return x;
