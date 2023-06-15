@@ -11,10 +11,12 @@ mod additive;
 mod fp;
 mod lfsr;
 mod linear;
+mod nfsr;
 use additive::AdditivePRG;
 use fp::FiveParamPRG;
 use lfsr::LfsrPRG;
 use linear::LinearPRG;
+use nfsr::NfsrPRG;
 
 // Генератор запускается только если (1) корректно введены все аргументы,
 // (2) инициализационный вектор соответствует указанному генератору.
@@ -111,6 +113,47 @@ fn construct_generator(conf: &Config) -> Result<Box<dyn PRGenerator>, String> {
             let coeff = Vec::from(&conf.init[..len / 2]);
             let init = Vec::from(&conf.init[len / 2..]);
             return Ok(Box::new(LfsrPRG::new(coeff, init)));
+        }
+        GeneratorType::Nfsr => {
+            let len = conf.init.len();
+            if len < 7 {
+                return Err("Инициализационный вектор должен содержать \
+                    коэффициенты для трёх РСЛОС, w, x1, x2, x3"
+                    .to_string());
+            }
+            let coeffs = &conf.init[..len - 4];
+            if coeffs.len() % 3 != 0 {
+                return Err("Список коэффициентов должен содержать \
+                            количество элементов кратное трём"
+                    .to_string());
+            }
+            let w = conf.init[len - 4];
+            let x1 = conf.init[len - 3];
+            let x2 = conf.init[len - 2];
+            let x3 = conf.init[len - 1];
+
+            let coeffs1 = Vec::from(&coeffs[..coeffs.len() / 3]);
+            let coeffs2 =
+                Vec::from(&coeffs[coeffs.len() / 3..coeffs.len() * 2 / 3]);
+            let coeffs3 = Vec::from(&coeffs[coeffs.len() * 2 / 3..]);
+
+            fn to_bin(x: u32) -> Vec<u32> {
+                let mut n = x;
+                let mut vec = Vec::new();
+                for _ in 0..std::mem::size_of_val(&x) {
+                    vec.push(n % 2);
+                    n /= 2;
+                }
+                return vec;
+            }
+
+            let init1 = Vec::from(&to_bin(x1)[..coeffs.len() / 3]);
+            let init2 = Vec::from(&to_bin(x2)[..coeffs.len() / 3]);
+            let init3 = Vec::from(&to_bin(x3)[..coeffs.len() / 3]);
+
+            return Ok(Box::new(NfsrPRG::new(
+                coeffs1, init1, coeffs2, init2, coeffs3, init3, w,
+            )));
         }
         _ => todo!(),
     }
