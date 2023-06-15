@@ -13,12 +13,14 @@ mod lfsr;
 mod linear;
 mod nfsr;
 mod rc4;
+mod rsa;
 use additive::AdditivePRG;
 use fp::FiveParamPRG;
 use lfsr::LfsrPRG;
 use linear::LinearPRG;
 use nfsr::NfsrPRG;
 use rc4::Rc4PRG;
+use rsa::RsaPRG;
 
 // Генератор запускается только если (1) корректно введены все аргументы,
 // (2) инициализационный вектор соответствует указанному генератору.
@@ -164,6 +166,18 @@ fn construct_generator(conf: &Config) -> Result<Box<dyn PRGenerator>, String> {
                     .to_string());
             }
             return Ok(Box::new(Rc4PRG::new(conf.init.clone())));
+        }
+        GeneratorType::Rsa => {
+            if conf.init.len() != 4 {
+                return Err("Инициализационный вектор должен содержать \
+                            параметры n,e,w,x"
+                    .to_string());
+            }
+            let n = conf.init[0];
+            let e = conf.init[1];
+            let w = conf.init[2];
+            let x = conf.init[3];
+            return Ok(Box::new(RsaPRG::new(n, e, w, x)));
         }
         _ => todo!(),
     }
