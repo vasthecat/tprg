@@ -27,6 +27,7 @@ impl PRGenerator for RsaPRG {
         for _ in 0..self.w {
             let y = pow_mod(self.x, self.e, self.n);
             word.push((y & 1) != 0);
+            self.x = y;
         }
         return word.load_be::<u32>() % MOD;
     }
