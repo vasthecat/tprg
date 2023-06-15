@@ -25,9 +25,8 @@ impl PRGenerator for RsaPRG {
         }
         let mut word = BitVec::<u32, Msb0>::new();
         for _ in 0..self.w {
-            let y = pow_mod(self.x, self.e, self.n);
-            word.push((y & 1) != 0);
-            self.x = y;
+            self.x = pow_mod(self.x, self.e, self.n);
+            word.push((self.x & 1) != 0);
         }
         return word.load_be::<u32>() % MOD;
     }

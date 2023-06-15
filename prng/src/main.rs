@@ -1,6 +1,8 @@
 use std::fs::File;
 use std::io::Write;
 
+use gcd::Gcd;
+
 mod clp;
 use clp::{parse_args, Config, GeneratorType};
 
@@ -8,6 +10,7 @@ mod prgenerator;
 use prgenerator::PRGenerator;
 
 mod additive;
+mod bbs;
 mod fp;
 mod lfsr;
 mod linear;
@@ -15,6 +18,7 @@ mod nfsr;
 mod rc4;
 mod rsa;
 use additive::AdditivePRG;
+use bbs::BbsPRG;
 use fp::FiveParamPRG;
 use lfsr::LfsrPRG;
 use linear::LinearPRG;
@@ -178,6 +182,18 @@ fn construct_generator(conf: &Config) -> Result<Box<dyn PRGenerator>, String> {
             let w = conf.init[2];
             let x = conf.init[3];
             return Ok(Box::new(RsaPRG::new(n, e, w, x)));
+        }
+        GeneratorType::Bbs => {
+            if conf.init.len() != 1 {
+                return Err("Инициализационный вектор должен содержать \
+                            только параметр x"
+                    .to_string());
+            }
+            let x = conf.init[0];
+            if x.gcd(16637) != 1 {
+                return Err("x должен быть взаимно простым с 16637".to_string());
+            }
+            return Ok(Box::new(BbsPRG::new(x)));
         }
         _ => todo!(),
     }
