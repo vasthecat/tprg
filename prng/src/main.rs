@@ -14,6 +14,7 @@ mod bbs;
 mod fp;
 mod lfsr;
 mod linear;
+mod mersenne;
 mod nfsr;
 mod rc4;
 mod rsa;
@@ -22,6 +23,7 @@ use bbs::BbsPRG;
 use fp::FiveParamPRG;
 use lfsr::LfsrPRG;
 use linear::LinearPRG;
+use mersenne::MersennePRG;
 use nfsr::NfsrPRG;
 use rc4::Rc4PRG;
 use rsa::RsaPRG;
@@ -163,6 +165,18 @@ fn construct_generator(conf: &Config) -> Result<Box<dyn PRGenerator>, String> {
                 coeffs1, init1, coeffs2, init2, coeffs3, init3, w,
             )));
         }
+        GeneratorType::MersenneTwister => {
+            if conf.init.len() != 2 {
+                return Err(
+                    "Инициализационный вектор должен содержать только \
+                            значения модуля и начальный x"
+                        .to_string(),
+                );
+            }
+            let m = conf.init[0];
+            let x = conf.init[1];
+            return Ok(Box::new(MersennePRG::new(m, x)));
+        }
         GeneratorType::Rc4 => {
             if conf.init.len() != 256 {
                 return Err("Инициализационный вектор должен содержать 256 \
@@ -195,7 +209,6 @@ fn construct_generator(conf: &Config) -> Result<Box<dyn PRGenerator>, String> {
             }
             return Ok(Box::new(BbsPRG::new(x)));
         }
-        _ => todo!(),
     }
 }
 
