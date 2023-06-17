@@ -1,3 +1,3 @@
 pub trait PRDistribution {
-    fn distribute_numbers(&self, xs: &Vec<u32>) -> Vec<f32>;
+    fn distribute_numbers(&self, m: u32, xs: &[u32]) -> Vec<f32>;
 }

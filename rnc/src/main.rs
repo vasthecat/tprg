@@ -1,5 +1,5 @@
 use std::fs::File;
-use std::io::{Read, Write};
+use std::io::Write;
 
 mod clp;
 use crate::clp::{parse_args, Config, DistributionType};
@@ -15,7 +15,9 @@ fn main() {
         Ok(conf) => match construct_distribution(&conf) {
             Ok(distr) => {
                 let numbers = read_numbers(&conf);
-                let distributed = distr.distribute_numbers(&numbers);
+                let module = numbers[0];
+                let numbers = Vec::from(&numbers[1..]);
+                let distributed = distr.distribute_numbers(module, &numbers);
                 write_numbers(&conf, &distributed);
             }
             Err(msg) => println!("{}", msg),
@@ -29,7 +31,7 @@ fn construct_distribution(
 ) -> Result<Box<dyn PRDistribution>, String> {
     match conf.distribution {
         DistributionType::Standrard => {
-            Ok(Box::new(StandardDistribution::new(conf.p1, conf.p2)))
+            Ok(Box::new(StandardDistribution::new()))
         }
         _ => todo!(),
     }

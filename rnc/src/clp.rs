@@ -1,4 +1,4 @@
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum DistributionType {
     Standrard,   // стандартное равномерное с заданным интервалом;
     Triangle,    // треугольное распределение;
@@ -63,7 +63,7 @@ fn parse_name(arg: &String) -> (String, String) {
         }
     }
     let name = String::from_utf8(name).unwrap();
-    return (name, arg[i..].to_string());
+    (name, arg[i..].to_string())
 }
 
 const HELP_STR: &str =
@@ -177,14 +177,14 @@ pub fn parse_args(args_iter: std::env::Args) -> Result<Config, String> {
     }
 
     if let (Some(distribution), Some(p1), Some(p2)) = (distribution, p1, p2) {
-        return Ok(Config {
+        Ok(Config {
             distribution,
             file,
             p1,
             p2,
             p3,
-        });
+        })
+    } else {
+        Err(HELP_STR.to_string())
     }
-
-    return Err(HELP_STR.to_string());
 }
