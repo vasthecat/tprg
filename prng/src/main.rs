@@ -2,6 +2,7 @@ use std::fs::File;
 use std::io::Write;
 
 use gcd::Gcd;
+use pbr::ProgressBar;
 
 mod clp;
 use clp::{parse_args, Config, GeneratorType};
@@ -219,14 +220,20 @@ fn generate_numbers<T: PRGenerator + ?Sized>(
     mut gen: Box<T>,
 ) -> Vec<u32> {
     let mut numbers = Vec::new();
+    let mut pb = ProgressBar::new(conf.n);
     for _ in 0..conf.n {
         numbers.push(gen.next());
+        pb.message("Генерация чисел: ");
+        pb.inc();
     }
+    pb.finish_println("Генерация чисел завершена.");
+    println!();
     return numbers;
 }
 
 fn write_numbers(conf: &Config, numbers: &Vec<u32>) {
     let mut file = File::create(&conf.file).unwrap();
+    let mut pb = ProgressBar::new(numbers.len().try_into().unwrap());
     for i in 0..numbers.len() {
         let num = numbers[i];
         if i == numbers.len() - 1 {
@@ -234,5 +241,9 @@ fn write_numbers(conf: &Config, numbers: &Vec<u32>) {
         } else {
             let _ = file.write_all(format!("{},", num).as_bytes());
         }
+        pb.message("Запись чисел в файл: ");
+        pb.inc();
     }
+    pb.finish_println("Запись чисел завершена.");
+    println!();
 }
