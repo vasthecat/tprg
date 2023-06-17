@@ -5,10 +5,14 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-      - name: Build executable
-        run: cd prng && cargo build --release
+      - name: Build prng executable
+        run: pushd prng && cargo build --release && popd
+      - name: Build rnc executable
+        run: pushd rnc && cargo build --release && popd
       - name: Archive artifacts
         uses: actions/upload-artifact@v3
         with:
           name: windows-generators
-          path: prng/target/release/prng.exe
+          path: |
+            prng/target/release/prng.exe
+            rnc/target/release/rnc.exe
