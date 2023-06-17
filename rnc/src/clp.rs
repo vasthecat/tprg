@@ -26,6 +26,22 @@ impl DistributionType {
     }
 }
 
+impl ToString for DistributionType {
+    fn to_string(&self) -> String {
+        match self {
+            DistributionType::Standrard => "st",
+            DistributionType::Triangle => "tr",
+            DistributionType::Exponential => "ex",
+            DistributionType::Normal => "nr",
+            DistributionType::Gamma => "gm",
+            DistributionType::Lognormal => "ln",
+            DistributionType::Logistic => "ls",
+            DistributionType::Binomial => "bi",
+        }
+        .to_string()
+    }
+}
+
 #[derive(Debug)]
 pub struct Config {
     pub distribution: DistributionType,
