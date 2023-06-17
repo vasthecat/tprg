@@ -8,7 +8,9 @@ mod prdistribution;
 use crate::prdistribution::PRDistribution;
 
 mod standard;
+mod triangle;
 use crate::standard::StandardDistribution;
+use crate::triangle::TriangleDistribution;
 
 fn main() {
     match parse_args(std::env::args()) {
@@ -32,6 +34,9 @@ fn construct_distribution(
     match conf.distribution {
         DistributionType::Standrard => {
             Ok(Box::new(StandardDistribution::new()))
+        }
+        DistributionType::Triangle => {
+            Ok(Box::new(TriangleDistribution::new(conf.p1, conf.p2)))
         }
         _ => todo!(),
     }
