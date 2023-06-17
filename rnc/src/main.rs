@@ -7,6 +7,9 @@ use crate::clp::{parse_args, Config, DistributionType};
 mod prdistribution;
 use crate::prdistribution::PRDistribution;
 
+mod standard;
+use crate::standard::StandardDistribution;
+
 fn main() {
     match parse_args(std::env::args()) {
         Ok(conf) => match construct_distribution(&conf) {
@@ -25,6 +28,9 @@ fn construct_distribution(
     conf: &Config,
 ) -> Result<Box<dyn PRDistribution>, String> {
     match conf.distribution {
+        DistributionType::Standrard => {
+            Ok(Box::new(StandardDistribution::new(conf.p1, conf.p2)))
+        }
         _ => todo!(),
     }
 }
@@ -37,7 +43,7 @@ fn read_numbers(conf: &Config) -> Vec<u32> {
         .collect()
 }
 
-fn write_numbers(conf: &Config, numbers: &Vec<u32>) {
+fn write_numbers(conf: &Config, numbers: &Vec<f32>) {
     let file_name = format!("distr-{}.dat", conf.distribution.to_string());
     let mut file = File::create(file_name).unwrap();
 

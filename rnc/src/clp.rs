@@ -46,9 +46,9 @@ impl ToString for DistributionType {
 pub struct Config {
     pub distribution: DistributionType,
     pub file: String,
-    pub p1: u32,
-    pub p2: u32,
-    pub p3: Option<u32>,
+    pub p1: f32,
+    pub p2: f32,
+    pub p3: Option<f32>,
 }
 
 fn parse_name(arg: &String) -> (String, String) {
@@ -122,7 +122,7 @@ pub fn parse_args(args_iter: std::env::Args) -> Result<Config, String> {
                 distrtype => distribution = distrtype,
             },
             "f" => file = value,
-            "p1" => match value.parse::<u32>() {
+            "p1" => match value.parse::<f32>() {
                 Ok(num) => p1 = Some(num),
                 Err(_) => {
                     return Err("Значение аргумента p1 должно быть \
@@ -130,7 +130,7 @@ pub fn parse_args(args_iter: std::env::Args) -> Result<Config, String> {
                         .to_string())
                 }
             },
-            "p2" => match value.parse::<u32>() {
+            "p2" => match value.parse::<f32>() {
                 Ok(num) => p2 = Some(num),
                 Err(_) => {
                     return Err("Значение аргумента p2 должно быть \
@@ -138,7 +138,7 @@ pub fn parse_args(args_iter: std::env::Args) -> Result<Config, String> {
                         .to_string())
                 }
             },
-            "p3" => match value.parse::<u32>() {
+            "p3" => match value.parse::<f32>() {
                 Ok(num) => p3 = Some(num),
                 Err(_) => {
                     return Err("Значение аргумента p3 должно быть \
