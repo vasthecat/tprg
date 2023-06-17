@@ -9,10 +9,14 @@ jobs:
         run: pushd prng && cargo build --release && popd
       - name: Build rnc executable
         run: pushd rnc && cargo build --release && popd
+      - name: Copy artifacts
+        run: |
+          cp prng/target/release/prng.exe .
+          cp rnc/target/release/rnc.exe .
       - name: Archive artifacts
         uses: actions/upload-artifact@v3
         with:
           name: windows-generators
           path: |
-            prng/target/release/prng.exe
-            rnc/target/release/rnc.exe
+            prng.exe
+            rnc.exe
