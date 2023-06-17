@@ -80,6 +80,7 @@ fn construct_distribution(
 fn read_numbers(conf: &Config) -> Vec<u32> {
     std::fs::read_to_string(&conf.file)
         .unwrap()
+        .trim()
         .split(',')
         .map(|x| x.parse::<u32>().unwrap())
         .collect()

@@ -13,6 +13,8 @@ impl ExponentialDistribution {
 
 impl PRDistribution for ExponentialDistribution {
     fn distribute_numbers(&self, m: u32, xs: &[u32]) -> Vec<f32> {
-        todo!()
+        xs.iter()
+            .map(|x| self.p1 - self.p2 * (*x as f32 / m as f32).ln())
+            .collect()
     }
 }

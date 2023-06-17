@@ -21,6 +21,6 @@ impl PRDistribution for TriangleDistribution {
             let val = self.p1 + self.p2 * (x1 / m + x2 / m - 1.0);
             res.push(val);
         }
-        return res;
+        res
     }
 }
