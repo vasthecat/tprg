@@ -1,4 +1,5 @@
-use crate::prgenerator::PRGenerator;
+use crate::prgenerator::{PRGenerator, MOD};
+use std::cmp::Ordering;
 
 const W: u32 = 32;
 const N: usize = 624;
@@ -31,7 +32,7 @@ impl MersennePRG {
             modulo,
         };
         prg.seed_mt(x);
-        return prg;
+        prg
     }
 
     fn seed_mt(&mut self, seed: u32) {
@@ -59,10 +60,10 @@ impl MersennePRG {
 
 impl PRGenerator for MersennePRG {
     fn next(&mut self) -> u32 {
-        if self.index == N {
-            self.twist();
-        } else if self.index > N {
-            panic!("Генератор не был инициализирован");
+        match self.index.cmp(&N) {
+            Ordering::Equal => self.twist(),
+            Ordering::Greater => panic!("Генератор не был инициализирован"),
+            _ => (),
         }
 
         let mut y = self.mt[self.index];
@@ -72,6 +73,6 @@ impl PRGenerator for MersennePRG {
         y = y ^ (y >> L);
 
         self.index += 1;
-        return y % self.modulo;
+        (y % self.modulo) % MOD
     }
 }

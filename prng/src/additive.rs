@@ -1,4 +1,4 @@
-use crate::prgenerator::PRGenerator;
+use crate::prgenerator::{PRGenerator, MOD};
 use std::collections::VecDeque;
 
 pub struct AdditivePRG {
@@ -27,6 +27,6 @@ impl PRGenerator for AdditivePRG {
             (self.vec[self.n - self.j] + self.vec[self.n - self.k]) % self.m;
         self.vec.push_back(x);
         self.vec.pop_front();
-        return x;
+        x % MOD
     }
 }

@@ -21,13 +21,13 @@ impl PRGenerator for RsaPRG {
             for _ in 0..e {
                 res = (res * x) % m;
             }
-            return res;
+            res
         }
         let mut word = BitVec::<u32, Msb0>::new();
         for _ in 0..self.w {
             self.x = pow_mod(self.x, self.e, self.n);
             word.push((self.x & 1) != 0);
         }
-        return word.load_be::<u32>() % MOD;
+        word.load_be::<u32>() % MOD
     }
 }

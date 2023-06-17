@@ -1,4 +1,4 @@
-use crate::prgenerator::PRGenerator;
+use crate::prgenerator::{PRGenerator, MOD};
 
 pub struct LinearPRG {
     m: u32,
@@ -17,6 +17,6 @@ impl PRGenerator for LinearPRG {
     fn next(&mut self) -> u32 {
         let x = self.x;
         self.x = (self.a * self.x + self.c) % self.m;
-        x
+        x % MOD
     }
 }

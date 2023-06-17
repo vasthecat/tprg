@@ -23,7 +23,7 @@ impl Rc4PRG {
             j = (j + prg.s[i] + prg.k[i] as usize) % 256;
             prg.s.swap(i, j);
         }
-        return prg;
+        prg
     }
 }
 
@@ -34,6 +34,6 @@ impl PRGenerator for Rc4PRG {
         self.s.swap(self.i, self.j);
         let t = (self.s[self.i] + self.s[self.j]) % 256;
         let k: u32 = self.s[t].try_into().unwrap();
-        return k % MOD;
+        k % MOD
     }
 }

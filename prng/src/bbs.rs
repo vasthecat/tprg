@@ -20,6 +20,6 @@ impl PRGenerator for BbsPRG {
             self.x = (self.x * self.x) % N;
             word.push((self.x & 1) != 0);
         }
-        return word.load_be::<u32>() % MOD;
+        word.load_be::<u32>() % MOD
     }
 }

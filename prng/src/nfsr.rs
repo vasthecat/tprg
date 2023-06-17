@@ -1,5 +1,5 @@
 use crate::lfsr::LfsrPRG;
-use crate::prgenerator::PRGenerator;
+use crate::prgenerator::{PRGenerator, MOD};
 use bitvec::prelude::*;
 
 pub struct NfsrPRG {
@@ -38,6 +38,6 @@ impl PRGenerator for NfsrPRG {
             let bit = bit1 & bit2 ^ bit2 & bit3 ^ bit3;
             word.push(bit);
         }
-        return word.load_be::<u32>();
+        word.load_be::<u32>() % MOD
     }
 }

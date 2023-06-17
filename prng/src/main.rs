@@ -1,5 +1,6 @@
 use std::fs::File;
 use std::io::Write;
+use std::rc::Rc;
 
 use gcd::Gcd;
 use pbr::ProgressBar;
@@ -8,7 +9,7 @@ mod clp;
 use clp::{parse_args, Config, GeneratorType};
 
 mod prgenerator;
-use prgenerator::PRGenerator;
+use prgenerator::{PRGenerator, MOD};
 
 mod additive;
 mod bbs;
@@ -50,7 +51,7 @@ fn main() {
 // поэтому необходимо хранить ссылку на объект с общим интерфейсом для
 // использования в других функциях. Если на основе указанных параметров
 // невозможно сконструировать генератор, то возвращается ошибка.
-fn construct_generator(conf: &Config) -> Result<Box<dyn PRGenerator>, String> {
+fn construct_generator(conf: &Config) -> Result<Rc<dyn PRGenerator>, String> {
     match conf.generator {
         GeneratorType::Lcg => {
             if conf.init.len() != 4 {
@@ -58,7 +59,7 @@ fn construct_generator(conf: &Config) -> Result<Box<dyn PRGenerator>, String> {
                      инициализационный вектор должен содержать 4 элемента"
                     .to_string())
             } else {
-                Ok(Box::new(LinearPRG::new(
+                Ok(Rc::new(LinearPRG::new(
                     conf.init[0],
                     conf.init[1],
                     conf.init[2],
@@ -88,7 +89,7 @@ fn construct_generator(conf: &Config) -> Result<Box<dyn PRGenerator>, String> {
                         .to_string(),
                 );
             }
-            return Ok(Box::new(AdditivePRG::new(m, j, k, xs)));
+            Ok(Rc::new(AdditivePRG::new(m, j, k, xs)))
         }
         GeneratorType::FiveParam => {
             let len = conf.init.len();
@@ -110,7 +111,7 @@ fn construct_generator(conf: &Config) -> Result<Box<dyn PRGenerator>, String> {
                         .to_string(),
                 );
             }
-            return Ok(Box::new(FiveParamPRG::new(p, q1, q2, q3, w, xs)));
+            Ok(Rc::new(FiveParamPRG::new(p, q1, q2, q3, w, xs)))
         }
         GeneratorType::Lfsr => {
             let len = conf.init.len();
@@ -123,7 +124,7 @@ fn construct_generator(conf: &Config) -> Result<Box<dyn PRGenerator>, String> {
             }
             let coeff = Vec::from(&conf.init[..len / 2]);
             let init = Vec::from(&conf.init[len / 2..]);
-            return Ok(Box::new(LfsrPRG::new(coeff, init)));
+            Ok(Rc::new(LfsrPRG::new(coeff, init)))
         }
         GeneratorType::Nfsr => {
             let len = conf.init.len();
@@ -155,16 +156,16 @@ fn construct_generator(conf: &Config) -> Result<Box<dyn PRGenerator>, String> {
                     vec.push(n % 2);
                     n /= 2;
                 }
-                return vec;
+                vec
             }
 
             let init1 = Vec::from(&to_bin(x1)[..coeffs.len() / 3]);
             let init2 = Vec::from(&to_bin(x2)[..coeffs.len() / 3]);
             let init3 = Vec::from(&to_bin(x3)[..coeffs.len() / 3]);
 
-            return Ok(Box::new(NfsrPRG::new(
+            Ok(Rc::new(NfsrPRG::new(
                 coeffs1, init1, coeffs2, init2, coeffs3, init3, w,
-            )));
+            )))
         }
         GeneratorType::MersenneTwister => {
             if conf.init.len() != 2 {
@@ -176,7 +177,7 @@ fn construct_generator(conf: &Config) -> Result<Box<dyn PRGenerator>, String> {
             }
             let m = conf.init[0];
             let x = conf.init[1];
-            return Ok(Box::new(MersennePRG::new(m, x)));
+            Ok(Rc::new(MersennePRG::new(m, x)))
         }
         GeneratorType::Rc4 => {
             if conf.init.len() != 256 {
@@ -184,7 +185,7 @@ fn construct_generator(conf: &Config) -> Result<Box<dyn PRGenerator>, String> {
                             значений"
                     .to_string());
             }
-            return Ok(Box::new(Rc4PRG::new(conf.init.clone())));
+            Ok(Rc::new(Rc4PRG::new(conf.init.clone())))
         }
         GeneratorType::Rsa => {
             if conf.init.len() != 4 {
@@ -196,7 +197,7 @@ fn construct_generator(conf: &Config) -> Result<Box<dyn PRGenerator>, String> {
             let e = conf.init[1];
             let w = conf.init[2];
             let x = conf.init[3];
-            return Ok(Box::new(RsaPRG::new(n, e, w, x)));
+            Ok(Rc::new(RsaPRG::new(n, e, w, x)))
         }
         GeneratorType::Bbs => {
             if conf.init.len() != 1 {
@@ -208,7 +209,7 @@ fn construct_generator(conf: &Config) -> Result<Box<dyn PRGenerator>, String> {
             if x.gcd(16637) != 1 {
                 return Err("x должен быть взаимно простым с 16637".to_string());
             }
-            return Ok(Box::new(BbsPRG::new(x)));
+            Ok(Rc::new(BbsPRG::new(x)))
         }
     }
 }
@@ -217,29 +218,30 @@ fn construct_generator(conf: &Config) -> Result<Box<dyn PRGenerator>, String> {
 // количество чисел по одному с помощью метода .next()
 fn generate_numbers<T: PRGenerator + ?Sized>(
     conf: &Config,
-    mut gen: Box<T>,
+    mut gen: Rc<T>,
 ) -> Vec<u32> {
     let mut numbers = Vec::new();
     let mut pb = ProgressBar::new(conf.n);
     for _ in 0..conf.n {
-        numbers.push(gen.next());
+        numbers.push(Rc::get_mut(&mut gen).unwrap().next());
         pb.message("Генерация чисел: ");
         pb.inc();
     }
     pb.finish_println("Генерация чисел завершена.");
     println!();
-    return numbers;
+    numbers
 }
 
 fn write_numbers(conf: &Config, numbers: &Vec<u32>) {
     let mut file = File::create(&conf.file).unwrap();
     let mut pb = ProgressBar::new(numbers.len().try_into().unwrap());
+    file.write_all(format!("{},", MOD).as_bytes()).unwrap();
     for i in 0..numbers.len() {
         let num = numbers[i];
         if i == numbers.len() - 1 {
-            let _ = file.write_all(format!("{}", num).as_bytes());
+            file.write_all(format!("{}", num).as_bytes()).unwrap();
         } else {
-            let _ = file.write_all(format!("{},", num).as_bytes());
+            file.write_all(format!("{},", num).as_bytes()).unwrap();
         }
         pb.message("Запись чисел в файл: ");
         pb.inc();

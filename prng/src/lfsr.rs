@@ -1,4 +1,4 @@
-use crate::prgenerator::PRGenerator;
+use crate::prgenerator::{PRGenerator, MOD};
 use std::collections::VecDeque;
 
 pub struct LfsrPRG {
@@ -33,6 +33,6 @@ impl PRGenerator for LfsrPRG {
         for i in 0..std::mem::size_of::<u32>() * 8 {
             result |= self.next_bit() << i;
         }
-        result % 1024
+        result % MOD
     }
 }

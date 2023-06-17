@@ -1,4 +1,4 @@
-use crate::prgenerator::PRGenerator;
+use crate::prgenerator::{PRGenerator, MOD};
 use bitvec::prelude::*;
 
 pub struct FiveParamPRG {
@@ -44,6 +44,6 @@ impl PRGenerator for FiveParamPRG {
             *self.vec.last_mut().unwrap() = bit;
             word.push(bit);
         }
-        return word.load_be::<u32>();
+        word.load_be::<u32>() % MOD
     }
 }
