@@ -7,8 +7,20 @@ use crate::clp::{parse_args, Config, DistributionType};
 mod prdistribution;
 use crate::prdistribution::PRDistribution;
 
+mod binomial;
+mod exponential;
+mod gamma;
+mod logistic;
+mod lognormal;
+mod normal;
 mod standard;
 mod triangle;
+use crate::binomial::BinomialDistribution;
+use crate::exponential::ExponentialDistribution;
+use crate::gamma::GammaDistribution;
+use crate::logistic::LogisticDistribution;
+use crate::lognormal::LognormalDistribution;
+use crate::normal::NormalDistribution;
 use crate::standard::StandardDistribution;
 use crate::triangle::TriangleDistribution;
 
@@ -38,7 +50,30 @@ fn construct_distribution(
         DistributionType::Triangle => {
             Ok(Box::new(TriangleDistribution::new(conf.p1, conf.p2)))
         }
-        _ => todo!(),
+        DistributionType::Exponential => {
+            Ok(Box::new(ExponentialDistribution::new(conf.p1, conf.p2)))
+        }
+        DistributionType::Normal => {
+            Ok(Box::new(NormalDistribution::new(conf.p1, conf.p2)))
+        }
+        DistributionType::Gamma => {
+            match conf.p3 {
+                Some(p3) => {
+                    Ok(Box::new(GammaDistribution::new(conf.p1, conf.p2, p3)))
+                }
+                None => Err("Параметр p3 обязателен для гамма-распределения"
+                    .to_string()),
+            }
+        }
+        DistributionType::Lognormal => {
+            Ok(Box::new(LognormalDistribution::new(conf.p1, conf.p2)))
+        }
+        DistributionType::Logistic => {
+            Ok(Box::new(LogisticDistribution::new(conf.p1, conf.p2)))
+        }
+        DistributionType::Binomial => {
+            Ok(Box::new(BinomialDistribution::new(conf.p1, conf.p2)))
+        }
     }
 }
 
