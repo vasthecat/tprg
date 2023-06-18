@@ -152,7 +152,7 @@ fn construct_generator(conf: &Config) -> Result<Rc<dyn PRGenerator>, String> {
             fn to_bin(x: u32) -> Vec<u32> {
                 let mut n = x;
                 let mut vec = Vec::new();
-                for _ in 0..std::mem::size_of_val(&x) {
+                for _ in 0..std::mem::size_of_val(&x) * 8 {
                     vec.push(n % 2);
                     n /= 2;
                 }
