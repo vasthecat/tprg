@@ -1,0 +1,377 @@
+\documentclass[spec, och, pract_otchet]{SCWorks}
+\usepackage{preamble}
+
+\title{Теория псевдослучайных генераторов}
+\author{Гущина Андрея Юрьевича} % Фамилия, имя, отчество в родительном падеже
+
+\begin{document}
+\input{titlepage.tex}
+\tableofcontents
+
+\section{Генератор псевдослучайных чисел}
+
+Создать программу, генерирующую псевдослучайные числа из заданного диапазона.
+Входные параметры алгоритмы передаются программе через строку параметров.
+Выходные значения записываются в файл, указанный в параметре запуска программы.
+
+\subsection{Линейный конгруэнтный метод}
+
+Последовательность ПСЧ, получаемая по формуле:
+\begin{equation*}
+  X_{n + 1} = (a X_n + c) \pmod{m},\quad n \geq 1
+\end{equation*}
+называется линейной конгруэнтной последовательностью (ЛКП). Ключом для неё
+служит $X_0$.
+
+Параметры:
+\begin{itemize}
+  \item $m$  --- модуль
+  \item $a$  --- множитель
+  \item $c$  --- приращение
+  \item $x_0$ --- начальное значение (десятичное число)
+\end{itemize}
+
+Исходный код генератора:
+\inputminted{rust}{../prng/src/linear.rs}
+
+\subsection{Аддитивный метод}
+
+Последовательность Фибоначчи с задержкой определяется следующим образом:
+\begin{equation*}
+  X_{n + 1} = (X_{n - k} + X_{n - j}) \pmod{m},\quad j > k \geq 1
+\end{equation*}
+
+Параметры:
+\begin{itemize}
+  \item $m$ --- модуль
+  \item $k$ --- младший индекс
+  \item $j$ --- старший индекс
+  \item $x_0,\dots,x_n$ --- $n$ начальных значений (десятичные числа), $n \geq j$
+\end{itemize}
+
+Исходный код генератора:
+\inputminted{rust}{../prng/src/additive.rs}
+
+\subsection{Пятипараметрический метод}
+
+Данный метод является частным случаем РСЛОС, использует характеристический
+многочлен из 5 членов и позволяет генерировать последовательности $w$-битовых
+двоичных целых чисел в соответствии со следующей рекуррентной формулой:
+\begin{equation*}
+  X_{n + p} = X_{n + q_1} + X_{n + q_2} + X_{n + q_3} + X_n,\quad n = 1, 2, \dots
+\end{equation*}
+
+Параметры:
+\begin{itemize}
+  \item $p$ --- количество элементов
+  \item $q_1$ --- первый индекс
+  \item $q_2$ --- второй индекс
+  \item $q_3$ --- третий индекс
+  \item $w$ --- длина слова в битах
+  \item $x_1,\dots,x_p$ --- начальное значение регистра (последовательность 0 и 1)
+\end{itemize}
+
+Исходный код генератора:
+\inputminted{rust}{../prng/src/fp.rs}
+
+\subsection{Регистр сдвига с обратной связью (РСЛОС)}
+
+Регистр сдвига с обратной линейной связью (РСЛОС) --- регистр сдвига битовых
+слов, у которого входной (вдвигаемый) бит является линейной функцией остальных
+битов. Вдвигаемый вычисленный бит заносится в ячейку с номером 0. Количество
+ячеек p называют длиной регистра.
+
+Для натурального числа $p$ и $a_1, a_2, \dots, a_{p - 1}$, принимающих значения
+0 или 1, определяют рекуррентную формулу
+\begin{equation}
+  X_{n + p} = a_{p - 1} X_{n + p - 1} + a_{p - 2} X_{n + p - 2} + \dots +
+  a_1 X_{n + 1} + X_n
+  \label{eq:lfsr}
+\end{equation}
+
+Как видно из формулы, для РСЛОС функция обратной связи является линейной булевой
+функцией от состояний всех или некоторых битов регистра.
+
+Одна итерация алгоритма, генерирующего последовательность, состоит из следующих
+шагов:
+\begin{enumerate}
+  \item Содержимое ячейки $p - 1$ формирует очередной бит ПСП битов.
+  \item
+    Содержимое ячейки 0 определяется значением функции обратной связи,
+    являющейся линейной булевой функцией с коэффициентами $a_1, \dots, a_{p -
+    1}$. Его вычисляют по формуле \ref{eq:lfsr}.
+  \item
+    Содержимое каждого $i$-го бита перемещается в $(i + 1)$-й, $0 \leq i < p - 1$.
+  \item В ячейку 0 записывается новое содержимое, вычисленное на шаге 2.
+\end{enumerate}
+
+Параметры:
+\begin{itemize}
+  \item $a_0,\dots,a_p$ --- вектор коэффициентов (последовательность 0 и 1)
+  \item $x_0,\dots,x_p$ --- начальное значение регистра (последовательность 0 и 1)
+\end{itemize}
+
+Исходный код генератора:
+\inputminted{rust}{../prng/src/lfsr.rs}
+
+\subsection{Нелинейная комбинация РСЛОС}
+
+Последовательность получается с помощью нелинейной комбинации трёх РСЛОС:
+\begin{equation*}
+  f(x_1, x_2, x_3) = x_1 x_2 \oplus x_2 x_3 \oplus x_3
+\end{equation*}
+
+Параметры:
+\begin{itemize}
+  \item $a_0,\dots,a_n$ --- коэффициенты первого РСЛОС (последовательность 0 и 1)
+  \item $b_0,\dots,b_n$ --- коэффициенты второго РСЛОС (последовательность 0 и 1)
+  \item $c_0,\dots,c_n$ --- коэффициенты третьего РСЛОС (последовательность 0 и 1)
+  \item $w$ --- длина слова в битах
+  \item $x_1$ --- начальное состояние первого РСЛОС (десятичное число)
+  \item $x_2$ --- начальное состояние второго РСЛОС (десятичное число)
+  \item $x_3$ --- начальное состояние третьего РСЛОС (десятичное число)
+\end{itemize}
+
+Исходный код генератора:
+\inputminted{rust}{../prng/src/nfsr.rs}
+
+\subsection{Вихрь Мерсенна}
+
+Параметры:
+\begin{itemize}
+  \item $m$ --- модуль
+  \item $x$ --- начальное значение (десятичное число)
+\end{itemize}
+
+Исходный код генератора:
+\inputminted{rust}{../prng/src/mersenne.rs}
+
+\subsection{RC4}
+
+Описание алгоритма:
+\begin{enumerate}
+  \item
+    Инициализация $S_i$, $i = 0, 1, \dots, 255$:
+    \begin{enumerate}
+      \item for i = 0 to 255: $S_i = i$;
+      \item j = 0;
+      \item for i = 0 to 255: $j = (j + S_i + K_i) \pmod{256}$; Swap($S_i$, $S_j$);
+    \end{enumerate}
+  \item i = 0, j = 0;
+  \item
+    Итерация алгоритма:
+    \begin{enumerate}
+      \item $i = (i + 1) \pmod{256}$;
+      \item $j = (j + S_i) \pmod{256}$;
+      \item Swap($S_i$, $S_j$);
+      \item $t = (S_i + S_j) \pmod{256}$;
+      \item $K = S_t$.
+    \end{enumerate}
+\end{enumerate}
+
+Параметры:
+\begin{itemize}
+  \item $x_0,\dots,x_{256}$ --- начальные значения (256 десятичных чисел)
+\end{itemize}
+
+Исходный код генератора:
+\inputminted{rust}{../prng/src/rc4.rs}
+
+\subsection{ГПСЧ на основе RSA}
+
+Описание алгоритма:
+\begin{enumerate}
+  \item
+    Сгенерировать два секретных простых числа $p$ и $q$, а также $n = p \cdot q$
+    и $f = (p - 1)(q - 1)$. Выбрать случайное целое число $e : 1 < e < f$, такое
+    что $\gcd(e, f) = 1$.
+  \item
+    Выбрать случайное целое $x_0$ --- начальный вектор из интервала $[1, n -
+    1]$.
+  \item
+    for i = 1 to $l$ do
+    \begin{enumerate}
+      \item $x_i \leftarrow x_{i - 1}^e \pmod{n}$
+      \item $z_i \leftarrow$ последний значащий бит $x_i$
+    \end{enumerate}
+  \item Вернуть $z_1, \dots, z_l$.
+\end{enumerate}
+
+Параметры:
+\begin{itemize}
+  \item $n$ --- модуль $n = p \cdot q$, где $p, q$ --- простые числа
+  \item $e$ --- такое число, что $1 < e < (p-1)(q-1)$, $\gcd(e, (p-1)(q-1)) = 1$
+  \item $w$ --- длина слова в битах
+  \item $x$ --- число из интервала $[1,n]$
+\end{itemize}
+
+Исходный код генератора:
+\inputminted{rust}{../prng/src/rsa.rs}
+
+\subsection{Алгоритм Блюма-Блюма-Шуба}
+
+Описание алгоритма:
+\begin{enumerate}
+  \item
+    Сгенерировать два секретных простых числа $p$ и $q$, сравнимых с 3 по модулю
+    4. Произведение этих чисел --- $n = p \cdot q$ является числом Блюма.
+    Выберем другое случайное число $x$, взаимно простое с $n$.
+  \item
+    Вычислим $x_0 = x^2 \pmod{n}$, которое будет начальным вектором;
+  \item
+    for i = 1 to $l$ do
+    \begin{enumerate}
+      \item $x_i \leftarrow x_{i - 1}^2 \pmod{n}$
+      \item $z_i \leftarrow$ последний значащий бит $x_i$
+    \end{enumerate}
+  \item Вернуть $z_1, \dots, z_l$.
+\end{enumerate}
+
+Параметры:
+\begin{itemize}
+  \item $x$ --- начальное значение (десятичное число), $\gcd(x, 16637) = 1$
+\end{itemize}
+
+Исходный код генератора:
+\inputminted{rust}{../prng/src/bbs.rs}
+
+
+\section{Преобразование ПСЧ к заданному распределению}
+
+Создать программу для преобразования последовательности ПСЧ в другую
+последовательность ПСЧ с заданным распределением:
+\begin{itemize}
+  \item Стандартное равномерное с заданным интервалом;
+  \item Треугольное распределение;
+  \item Общее экспоненциальное распределение;
+  \item Нормальное распределение;
+  \item Гамма распределение (для параметра c=k);
+  \item Логнормальное распределение;
+  \item Логистическое распределение;
+  \item Биномиальное распределение.
+\end{itemize}
+
+
+\subsection{Стандартное равномерное с заданным интервалом}
+
+\begin{equation*}
+  y = p_2 U(x, m) + p_1
+\end{equation*}
+
+Исходный код преобразования:
+\inputminted{rust}{../rnc/src/standard.rs}
+
+
+\subsection{Треугольное распределение}
+
+\begin{equation*}
+  y = p_1 + p_2(U(x_1, m) + U(x_2, m) - 1)
+\end{equation*}
+
+Исходный код преобразования:
+\inputminted{rust}{../rnc/src/triangle.rs}
+
+
+\subsection{Общее экспоненциальное распределение}
+
+\begin{equation*}
+  y = -p_2 \ln(U(x, m)) + a
+\end{equation*}
+
+Исходный код преобразования:
+\inputminted{rust}{../rnc/src/exponential.rs}
+
+
+\subsection{Нормальное распределение}
+
+\begin{align*}
+  y_1 &= p_1 + p_2 \cdot \sqrt{-2 \ln(1 - U(x_1, m))} \cos(2 \pi U(x_2, m)) \\
+  y_2 &= p_1 + p_2 \cdot \sqrt{-2 \ln(1 - U(x_1, m))} \sin(2 \pi U(x_2, m))
+\end{align*}
+
+Исходный код преобразования:
+\inputminted{rust}{../rnc/src/normal.rs}
+
+
+\subsection{Гамма распределение (для параметра $p_3 = k$)}
+
+\begin{align*}
+  y &= gamma_k(x_1, \dots, x_{p_3}, p_1, p_2, p_3, m) =\\
+    &= p_1 - p_2 \cdot \ln\{[1 - U(x_1, m)] \cdot \ldots \cdot [1 - U(x_m, m)]\}
+\end{align*}
+
+Исходный код преобразования:
+\inputminted{rust}{../rnc/src/gamma.rs}
+
+
+\subsection{Логнормальное распределение}
+
+\begin{align*}
+  z_1, z_2 &= norm(x_1, x_2, 0, 1, m) \\
+  y_1 &= p_1 \cdot \exp(p_2 - z_1) \\ 
+  y_2 &= p_1 \cdot \exp(p_2 - z_2)
+\end{align*}
+
+Исходный код преобразования:
+\inputminted{rust}{../rnc/src/lognormal.rs}
+
+
+\subsection{Логистическое распределение}
+
+\begin{equation*}
+  y = p_1 + p_2 \cdot \ln\left(\frac{U(x, m)}{1 - U(x, m)}\right)
+\end{equation*}
+
+Исходный код преобразования:
+\inputminted{rust}{../rnc/src/logistic.rs}
+
+
+\subsection{Биномиальное распределение}
+
+$y = binominal(x, p_1, p_2, m):$
+\begin{enumerate}
+  \item $u = U(x, m)$;
+  \item $s = 0$;
+  \item $k = 0$;
+  \item
+    \texttt{loopstart:}
+    \begin{enumerate}
+      \item $s = s + C_{p_2}^k p_1^k (1 - p_1)^{p_2 - k}$;
+      \item if $s > u \implies y = k$, завершить;
+      \item if $k < p_2 - 1 \implies k = k + 1$, перейти к \texttt{loopstart};
+      \item $y = p_2$;
+    \end{enumerate}
+\end{enumerate}
+
+Исходный код преобразования:
+\inputminted{rust}{../rnc/src/binomial.rs}
+
+\appendix
+
+\section{Главный файл main.rs проекта prng}
+\inputminted{rust}{../prng/src/main.rs}
+
+\section{Файл prgenerator.rs проекта prng}
+\inputminted{rust}{../prng/src/prgenerator.rs}
+
+\section{Файл парсера аргументов командной строки clp.rs проекта prng}
+\inputminted{rust}{../prng/src/clp.rs}
+
+\section{Файл Cargo.toml проекта prng}
+\inputminted{rust}{../prng/Cargo.toml}
+
+
+\section{Главный файл main.rs проекта rnc}
+\inputminted{rust}{../rnc/src/main.rs}
+
+\section{Файл prdistribution.rs проекта rnc}
+\inputminted{rust}{../rnc/src/prdistribution.rs}
+
+\section{Файл парсера аргументов командной строки clp.rs проекта rnc}
+\inputminted{rust}{../rnc/src/clp.rs}
+
+\section{Файл Cargo.toml проекта rnc}
+\inputminted{rust}{../rnc/Cargo.toml}
+
+
+\end{document}

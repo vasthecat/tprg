@@ -4,3 +4,16 @@ target
 *~
 !.gitignore
 !.github
+
+*.aux
+*.fls
+*.log
+*.out
+*.fdb_latexmk
+*.gz
+*.thm
+*.toc
+*.bbl
+*.blg
+*.md
+_minted*
