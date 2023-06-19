@@ -45,7 +45,7 @@ fn construct_distribution(
 ) -> Result<Box<dyn PRDistribution>, String> {
     match conf.distribution {
         DistributionType::Standrard => {
-            Ok(Box::new(StandardDistribution::new()))
+            Ok(Box::new(StandardDistribution::new(conf.p1, conf.p2)))
         }
         DistributionType::Triangle => {
             Ok(Box::new(TriangleDistribution::new(conf.p1, conf.p2)))
